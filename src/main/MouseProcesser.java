@@ -136,6 +136,9 @@ public final class MouseProcesser extends MouseAdapter {
 
     private void tryToFinalizePolygonBody() {
         if (USED_PANEL.polygonBodyTemplate.develope()) {
+            if (USED_PANEL.polygonBodyTemplate.isConcave()) {
+                USED_PANEL.messageAboutConvexity();
+            }
             USED_PANEL.polygonBodyTemplate = new PolygonBodyTemplate(USED_PANEL.SCENE);
         }
     }

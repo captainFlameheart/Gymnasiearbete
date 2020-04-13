@@ -39,6 +39,7 @@ import buttons.TimeStepSlider;
 import buttons.UpdateButton;
 import buttons.WarpButton;
 import java.awt.image.BufferedImage;
+import other.ConvexMessage;
 import scenebody.Body;
 import scenebody.CircularBodyTemplate;
 import scenebody.PolygonBodyTemplate;
@@ -57,6 +58,7 @@ public final class Panel extends JPanel {
     ForceArrow forceArrow;
     CircularBodyTemplate circularBodyTemplate;
     PolygonBodyTemplate polygonBodyTemplate;
+    ConvexMessage convexMessage;
 
     final Scene SCENE;
     private boolean sceneIsPlaying = true;
@@ -87,9 +89,9 @@ public final class Panel extends JPanel {
         addButton(new ClearButton(new Vector2D(100, 400), SCENE));
         addButton(new FrictionSlider(0, new Vector2D(SIZE.x - 60, 300), new Vector2D(SIZE.x - 60, 80), 20, SCENE));
 
-        addButton(new ForceArrowButton(new Vector2D(SIZE.x / 2 - 100, SIZE.y - 60), MOUSE_PROCESSER));
-        addButton(new CircularBodyButton(new Vector2D(SIZE.x / 2, SIZE.y - 60), MOUSE_PROCESSER));
-        addButton(new PolygonBodyButton(new Vector2D(SIZE.x / 2 + 100, SIZE.y - 60), MOUSE_PROCESSER));
+        addButton(new ForceArrowButton(new Vector2D(SIZE.x / 2 - 50, SIZE.y - 60), MOUSE_PROCESSER));
+//        addButton(new CircularBodyButton(new Vector2D(SIZE.x / 2, SIZE.y - 60), MOUSE_PROCESSER));
+        addButton(new PolygonBodyButton(new Vector2D(SIZE.x / 2 + 50, SIZE.y - 60), MOUSE_PROCESSER));
 
         MENU_VISIBILTY_BUTTON = new MenuVisibilityButton(new Vector2D(SIZE.x - 60, SIZE.y - 60), this);
         addButton(MENU_VISIBILTY_BUTTON);
@@ -135,6 +137,12 @@ public final class Panel extends JPanel {
         possiblyMoveForceArrowTexture(seconds);
         updateSceneBodyList();
         possiblyUpdateScene(seconds);
+        if (convexMessage != null) {
+            convexMessage.update();
+            if (convexMessage.isDead()) {
+                convexMessage = null;
+            }
+        }
     }
 
     private void processMousePos() {
@@ -175,6 +183,9 @@ public final class Panel extends JPanel {
         paintScene(modifiedG, (sceneIsPlaying) ? secondsSinceUpdate : 0);
         paintMouseProcessing(modifiedG, secondsSinceUpdate);
         paintButtons(modifiedG, secondsSinceUpdate);
+        if (convexMessage != null) {
+            convexMessage.paintWithoutChangingGraphics(modifiedG, secondsSinceUpdate);
+        }
 
         getGraphics().drawImage(offscreenImage, 0, 0, null);
     }
@@ -224,6 +235,10 @@ public final class Panel extends JPanel {
         } else {
             MENU_VISIBILTY_BUTTON.paint(g, extrapolation);
         }
+    }
+
+    void messageAboutConvexity() {
+        convexMessage = new ConvexMessage(SIZE.x / 2, 0.1 * SIZE.y, 0.1 * HEIGHT, 25, 255);
     }
 
 }

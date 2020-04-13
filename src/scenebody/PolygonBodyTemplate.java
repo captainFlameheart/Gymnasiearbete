@@ -24,6 +24,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import main.Scene;
 import main.Sprite;
 import other.Convenience;
@@ -78,15 +79,52 @@ public final class PolygonBodyTemplate extends Sprite {
     }
 
     void createBody() {
+        if (!isClockwise()) {
+            Collections.reverse(VERTICES);
+        }
+        if (isConcave()) {
+            return;
+        }
+
         PolygonBodySeed bodySeed = new PolygonBodySeed();
-        
         bodySeed.setBodyPosition(bodyCenterOfMass());
         bodySeed.setBodyRelativeVertices(bodyRelativeVertices(bodySeed.bodyPosition));
         bodySeed.setDefaultBodyDensity();
-        
+
         USED_SCENE.addPolygonBody(bodySeed);
     }
-    
+
+    boolean isClockwise() {
+        int clockwiseValue = 0;
+        for (int i = 0; i < vertexCount; i++) {
+            Vector2D vertexA = VERTICES.get(i).POSITION;
+            Vector2D vertexB = VERTICES.get((i + 1) % vertexCount).POSITION;
+            clockwiseValue += (vertexB.x - vertexA.x) * (vertexB.y + vertexA.y);
+        }
+        return clockwiseValue < 0;
+    }
+
+    public boolean isConcave() {
+        boolean gotPositive = false, gotNegative = false;
+        for (int i = 0; i < vertexCount; i++) {
+            Vector2D a = VERTICES.get(i).POSITION;
+            Vector2D b = VERTICES.get((i + 1) % vertexCount).POSITION;
+            Vector2D c = VERTICES.get((i + 2) % vertexCount).POSITION;
+            Vector2D ab = Vector2D.drawing(a, b);
+            Vector2D bc = Vector2D.drawing(b, c);
+            double crossProduct = Vector2D.crossProduct(ab, bc);
+            if (crossProduct > 0) {
+                gotPositive = true;
+            } else if (crossProduct < 0) {
+                gotNegative = true;
+            }
+            if (gotPositive && gotNegative) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Vector2D bodyCenterOfMass() {
         Vector2D centerOfMass = new Vector2D();
         for (Vertex vertex : VERTICES) {
@@ -95,7 +133,7 @@ public final class PolygonBodyTemplate extends Sprite {
         centerOfMass.div(vertexCount);
         return centerOfMass;
     }
-    
+
     private Vector2D[] bodyRelativeVertices(Vector2D bodyPos) {
         Object[] vertexArray = VERTICES.toArray();
         Vector2D[] bodyRelativeVertices = new Vector2D[vertexCount];
